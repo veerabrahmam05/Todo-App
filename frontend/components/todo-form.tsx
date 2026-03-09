@@ -4,6 +4,9 @@ import { Controller, useForm } from "react-hook-form";
 import { Field, FieldError, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DatePicker } from "./date-picker";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Label } from "./ui/label";
 
 interface TodoFormProps extends Partial<TodoSchemaValues> {
   id?: string;
@@ -25,7 +28,8 @@ export const TodoForm = ({
       name: name ?? "",
       description: description ?? "",
       priority: priority ?? "",
-      deadline: deadline ?? "",
+      completed: false,
+      deadline: deadline ?? new Date(),
     },
   });
 
@@ -34,10 +38,10 @@ export const TodoForm = ({
       fetch(`http://localhost:8000/todo/update/${id}`, {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...data
+          ...data,
         }),
       }),
     onSuccess: () => {
@@ -51,7 +55,7 @@ export const TodoForm = ({
       fetch(`http://localhost:8000/todo/create_todo`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...data,
@@ -64,6 +68,7 @@ export const TodoForm = ({
   });
 
   const onSubmit = (data: TodoSchemaValues) => {
+    console.log("form data: ", data);
     if (id) {
       updateTodo.mutate(data);
     } else {
@@ -112,11 +117,52 @@ export const TodoForm = ({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="todo-form-priority">Priority</FieldLabel>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                id="todo-form-priority"
-              />
+              <RadioGroup
+                value={field.value}
+                onValueChange={field.onChange}
+                className="flex gap-4"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="low" id="low" />
+                  <Label htmlFor="low">Low</Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="medium" id="medium" />
+                  <Label htmlFor="medium">Medium</Label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="high" id="high" />
+                  <Label htmlFor="high">High</Label>
+                </div>
+              </RadioGroup>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+        <Controller
+          control={control}
+          name="completed"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="todo-form-priority">Status</FieldLabel>
+              <RadioGroup
+                className="flex gap-2"
+                value={String(field.value)}
+                onValueChange={(val) => {
+                  field.onChange(val === "true");
+                }}
+              >
+                <div className="flex gap-1">
+                  <RadioGroupItem value="false" id="pending" />
+                  <Label>pending</Label>
+                </div>
+                <div className="flex gap-1">
+                  <RadioGroupItem value="true" id="completed" />
+                  <Label>completed</Label>
+                </div>
+              </RadioGroup>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -127,11 +173,7 @@ export const TodoForm = ({
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="todo-form-deadline">Deadline</FieldLabel>
-              <Input
-                {...field}
-                aria-invalid={fieldState.invalid}
-                id="todo-form-deadline"
-              />
+              <DatePicker date={field.value} setDate={field.onChange} />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}

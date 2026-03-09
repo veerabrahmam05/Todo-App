@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { EllipsisVertical } from "lucide-react";
+import { CircleCheck, ClockFading, EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 import { TodoDialog } from "./todo-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
@@ -26,7 +26,8 @@ interface TodoCardProps {
   name: string;
   description: string;
   priority: string;
-  deadline: string;
+  completed: boolean;
+  deadline: Date;
 }
 
 interface DropDownItemsType {
@@ -40,6 +41,7 @@ export const TodoCard = ({
   name,
   description,
   priority,
+  completed,
   deadline,
 }: TodoCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -107,11 +109,22 @@ export const TodoCard = ({
             </DropdownMenu>
           </CardAction>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-2">
           <p>{priority}</p>
+          {completed ? (
+            <div className="flex gap-2 items-center">
+              <CircleCheck className="text-green-600 size-3.5" />
+              <span>Pending</span>
+            </div>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <ClockFading className="text-yellow-400 size-3.5" />
+              <span>Pending</span>
+            </div>
+          )}
         </CardContent>
         <CardFooter>
-          <p>{deadline}</p>
+          <p>{deadline.toLocaleString()}</p>
         </CardFooter>
       </Card>
 

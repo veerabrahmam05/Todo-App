@@ -7,7 +7,8 @@ interface TodoData {
   name: string;
   description: string;
   priority: string;
-  deadline: string;
+  completed: boolean;
+  deadline: Date;
 }
 
 export const TodoLayout = () => {
@@ -51,6 +52,7 @@ export const TodoLayout = () => {
           name={todo.name}
           description={todo.description}
           priority={todo.priority}
+          completed={todo.completed}
           deadline={todo.deadline}
         />
       ))}
