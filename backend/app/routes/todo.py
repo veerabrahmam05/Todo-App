@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.config.database import get_db, Todo
-from app.schemas.models import TodoResponse, TodoModel
+from app.config.database import get_db
+from app.schemas.schemas import Todo
+from app.schemas.models import TodoResponse, TodoModel, UpdateTodo
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
@@ -11,6 +12,9 @@ router = APIRouter(
 
 @router.get("/get", response_model=list[TodoResponse])
 def get(session: Session = Depends(get_db)):
+    """
+        Gets all the todos stored in the db
+    """
     result = session.execute(select(Todo))
     todos = [row[0] for row in result.all()]
 
@@ -18,6 +22,9 @@ def get(session: Session = Depends(get_db)):
 
 @router.post("/create_todo")
 def create_todo(todo: TodoModel, session: Session =  Depends(get_db)):
+    """
+        creates a todo with given data through method's body
+    """
     new_todo = Todo(**todo.model_dump())
     session.add(new_todo)
     session.commit()
@@ -26,7 +33,10 @@ def create_todo(todo: TodoModel, session: Session =  Depends(get_db)):
     return new_todo
 
 @router.put("/update/{todo_id}")
-def update_todo(todo_id: int, todo: TodoModel, session: Session = Depends(get_db)):
+def update_todo(todo_id: int, todo: UpdateTodo, session: Session = Depends(get_db)):
+    """
+        update's the mentioned todo by id with the provided info in the method's body
+    """
     db_todo = session.get(Todo, todo_id)
 
     if not db_todo:
@@ -42,6 +52,9 @@ def update_todo(todo_id: int, todo: TodoModel, session: Session = Depends(get_db
 
 @router.delete("/delete/{todo_id}")
 def delete_todo(todo_id: int, session: Session = Depends(get_db)):
+    """
+        delete's the todo mentioned by id
+    """
     db_todo = session.get(Todo, todo_id)
 
     if not db_todo:
