@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { CircleCheck, ClockFading, EllipsisVertical } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import {
   Card,
   CardAction,
@@ -15,11 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { CircleCheck, ClockFading, EllipsisVertical } from "lucide-react";
-import { useState } from "react";
 import { TodoDialog } from "./todo-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface TodoCardProps {
   id: string;

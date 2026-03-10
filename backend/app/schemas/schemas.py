@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column, Integer, String, Date, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Date, Boolean, Date
 
 class Base(DeclarativeBase):
     pass
@@ -12,4 +12,4 @@ class Todo(Base):
     description = Column(String)
     priority = Column(String)
     completed = Column(Boolean)
-    deadline = Column(DateTime)
+    deadline = Column(Date)

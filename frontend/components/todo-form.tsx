@@ -34,16 +34,22 @@ export const TodoForm = ({
   });
 
   const updateTodo = useMutation({
-    mutationFn: (data: TodoSchemaValues) =>
-      fetch(`http://localhost:8000/todo/update/${id}`, {
+    mutationFn: async (data: TodoSchemaValues) => {
+      const res = await fetch(`http://localhost:8000/todo/update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...data,
+          deadline: data.deadline.toISOString().split("T")[0]
         }),
-      }),
+      })
+
+      if (!res.ok) throw new Error("error occured while updating todo");
+
+      return res.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
       setOpen(false);
@@ -51,16 +57,22 @@ export const TodoForm = ({
   });
 
   const createTodo = useMutation({
-    mutationFn: (data: TodoSchemaValues) =>
-      fetch(`http://localhost:8000/todo/create_todo`, {
+    mutationFn: async (data: TodoSchemaValues) => {
+      const res = await fetch(`http://localhost:8000/todo/create_todo`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...data,
+          deadline: data.deadline.toISOString().split('T')[0]
         }),
-      }),
+      });
+
+      if (!res.ok) throw new Error("error occures while creating todo");
+
+      return res.json();
+    },  
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
       setOpen(false);
@@ -68,7 +80,6 @@ export const TodoForm = ({
   });
 
   const onSubmit = (data: TodoSchemaValues) => {
-    console.log("form data: ", data);
     if (id) {
       updateTodo.mutate(data);
     } else {

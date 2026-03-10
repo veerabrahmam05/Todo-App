@@ -1,19 +1,19 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date
 
 class TodoModel(BaseModel):
     name: str
     description: str
     priority: str
     completed: bool
-    deadline: datetime
+    deadline: date
 
 class UpdateTodo(BaseModel):
     name: str | None = None
     description: str | None = None
     priority: str | None = None
     completed: bool | None = None
-    deadline: datetime | None = None
+    deadline: date | None = None
 
 class TodoResponse(BaseModel):
     id: int
@@ -21,4 +21,4 @@ class TodoResponse(BaseModel):
     description: str
     priority: str
     completed: bool
-    deadline: datetime
+    deadline: date
