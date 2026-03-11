@@ -3,6 +3,7 @@ import { Funnel_Display } from "next/font/google";
 import "./globals.css";
 import { ReactQueryClientProvider } from "@/hooks/react-query-client-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
 
 const funnelDisplay = Funnel_Display({
   subsets: ["latin"],
@@ -19,11 +20,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${funnelDisplay.className} antialiased`}>
-        <ReactQueryClientProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ReactQueryClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ReactQueryClientProvider>
+            <TooltipProvider>{children}</TooltipProvider>
+          </ReactQueryClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
