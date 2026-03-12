@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.config.database import get_db
 from app.schemas.schemas import Todo
-from app.schemas.models import TodoResponse, TodoModel, UpdateTodo
+from app.schemas.models import TodoResponse, TodoModel, UpdateTodo, Priority
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, asc, desc
+from typing import Literal
+
 
 router = APIRouter(
     prefix="/todo",
@@ -11,11 +13,25 @@ router = APIRouter(
 )
 
 @router.get("/get", response_model=list[TodoResponse])
-def get(session: Session = Depends(get_db)):
+def get(
+    completed: bool | None = None,
+    sort: Literal["high_to_low", "low_to_high"] | None = None,
+    session: Session = Depends(get_db)
+    ):
     """
         Gets all the todos stored in the db
     """
-    result = session.execute(select(Todo))
+    query = select(Todo)
+
+    if completed is not None:
+        query = query.where(Todo.completed == completed)
+
+    if sort == "low_to_high":
+        query = query.order_by(asc(Todo.priority))
+    else:
+        query = query.order_by(desc(Todo.priority))
+    
+    result = session.execute(query)
     todos = [row[0] for row in result.all()]
 
     return todos

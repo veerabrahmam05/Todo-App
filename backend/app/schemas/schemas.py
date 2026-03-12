@@ -10,6 +10,6 @@ class Todo(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
     description = Column(String)
-    priority = Column(String)
+    priority = Column(Integer)
     completed = Column(Boolean)
     deadline = Column(Date)

@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import ResponseValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -26,3 +28,14 @@ app.add_middleware(
     allow_headers=["*"],)
 
 app.include_router(todo.router)
+
+@app.exception_handler(ResponseValidationError)
+async def response_validation_exception_handler(req: Request, e: ResponseValidationError):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "Response validation failed",
+            "errors": e.errors()
+        }
+    )
