@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "./date-picker";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
+import { Priority } from "@/app/types";
 
 interface TodoFormProps extends Partial<TodoSchemaValues> {
   id?: string;
@@ -27,7 +28,7 @@ export const TodoForm = ({
     defaultValues: {
       name: name ?? "",
       description: description ?? "",
-      priority: priority ?? "",
+      priority: priority ?? "0",
       completed: false,
       deadline: deadline ?? new Date(),
     },
@@ -42,13 +43,14 @@ export const TodoForm = ({
         },
         body: JSON.stringify({
           ...data,
-          deadline: data.deadline.toISOString().split("T")[0]
+          completed: Number(data.completed),
+          deadline: data.deadline.toISOString().split("T")[0],
         }),
-      })
+      });
 
       if (!res.ok) throw new Error("error occured while updating todo");
 
-      return res.json()
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
@@ -65,14 +67,15 @@ export const TodoForm = ({
         },
         body: JSON.stringify({
           ...data,
-          deadline: data.deadline.toISOString().split('T')[0]
+          completed: Number(data.completed),
+          deadline: data.deadline.toISOString().split("T")[0],
         }),
       });
 
       if (!res.ok) throw new Error("error occures while creating todo");
 
       return res.json();
-    },  
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["todos"] });
       setOpen(false);
@@ -129,22 +132,31 @@ export const TodoForm = ({
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor="todo-form-priority">Priority</FieldLabel>
               <RadioGroup
-                value={field.value}
+                value={String(field.value)}
                 onValueChange={field.onChange}
                 className="flex gap-4"
               >
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem value="low" id="low" />
+                  <RadioGroupItem
+                    value={String(Priority.low)}
+                    id={String(Priority.low)}
+                  />
                   <Label htmlFor="low">Low</Label>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem value="medium" id="medium" />
+                  <RadioGroupItem
+                    value={String(Priority.medium)}
+                    id={String(Priority.medium)}
+                  />
                   <Label htmlFor="medium">Medium</Label>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem value="high" id="high" />
+                  <RadioGroupItem
+                    value={String(Priority.high)}
+                    id={String(Priority.high)}
+                  />
                   <Label htmlFor="high">High</Label>
                 </div>
               </RadioGroup>

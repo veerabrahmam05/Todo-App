@@ -11,11 +11,17 @@ interface TodoData {
   deadline: Date;
 }
 
-export const TodoLayout = () => {
+interface TodoLayoutProps {
+  filter: boolean | null;
+}
+
+export const TodoLayout = ({ filter }: TodoLayoutProps) => {
   const { data, isLoading, isRefetching, isError } = useQuery<TodoData[]>({
-    queryKey: ["todos"],
+    queryKey: ["todos", filter],
     queryFn: () =>
-      fetch("http://localhost:8000/todo/get").then((res) => res.json()),
+      fetch(
+        `http://localhost:8000/todo/get${filter !== null ? `?completed=${filter}` : ""}`,
+      ).then((res) => res.json()),
   });
 
   if (isLoading && isRefetching) {
