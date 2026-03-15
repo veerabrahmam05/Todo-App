@@ -1,6 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { TodoCard } from "./todo-card";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface TodoData {
   id: string;
@@ -13,18 +14,30 @@ interface TodoData {
 
 interface TodoLayoutProps {
   filter: boolean | null;
+  sort: string | null;
 }
 
-export const TodoLayout = ({ filter }: TodoLayoutProps) => {
+export const TodoLayout = ({ filter, sort }: TodoLayoutProps) => {
   const { data, isLoading, isRefetching, isError } = useQuery<TodoData[]>({
-    queryKey: ["todos", filter],
-    queryFn: () =>
-      fetch(
-        `http://localhost:8000/todo/get${filter !== null ? `?completed=${filter}` : ""}`,
-      ).then((res) => res.json()),
+    queryKey: ["todos", filter, sort],
+    queryFn: () => {
+      const params = new URLSearchParams();
+
+      if (filter !== null) {
+        params.append("completed", String(filter));
+      }
+
+      if (sort) {
+        params.append("sort", sort);
+      }
+
+      return fetch(`http://localhost:8000/todo/get?${params.toString()}`).then(
+        (res) => res.json(),
+      );
+    },
   });
 
-  if (isLoading && isRefetching) {
+  if (isLoading || isRefetching) {
     return (
       <div className="h-full w-full flex flex-col gap-4 justify-center items-center">
         Loading todos..
@@ -50,18 +63,20 @@ export const TodoLayout = ({ filter }: TodoLayoutProps) => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-      {data?.map((todo) => (
-        <TodoCard
-          key={todo.id}
-          id={todo.id}
-          name={todo.name}
-          description={todo.description}
-          priority={todo.priority}
-          completed={todo.completed}
-          deadline={todo.deadline}
-        />
-      ))}
-    </div>
+    <ScrollArea className="h-full">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 m-1">
+        {data?.map((todo) => (
+          <TodoCard
+            key={todo.id}
+            id={todo.id}
+            name={todo.name}
+            description={todo.description}
+            priority={todo.priority}
+            completed={todo.completed}
+            deadline={todo.deadline}
+          />
+        ))}
+      </div>
+    </ScrollArea>
   );
 };

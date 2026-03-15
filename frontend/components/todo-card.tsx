@@ -60,6 +60,19 @@ export const TodoCard = ({
     },
   });
 
+  const getPriorityLabel = (value: number) => {
+    switch(value) {
+      case 0:
+        return "low";
+      case 1:
+        return "medium";
+      case 2:
+        return "high";
+      default:
+        return "none"
+    }
+  }
+
   const dropDownItems: DropDownItemsType[] = [
     {
       text: "udpate",
@@ -111,11 +124,11 @@ export const TodoCard = ({
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <p>{priority}</p>
+          <p>{getPriorityLabel(Number(priority))}</p>
           {completed ? (
             <div className="flex gap-2 items-center">
               <CircleCheck className="text-green-600 size-3.5" />
-              <span>Pending</span>
+              <span>Completed</span>
             </div>
           ) : (
             <div className="flex gap-2 items-center">
@@ -135,7 +148,7 @@ export const TodoCard = ({
         id={id}
         name={name}
         description={description}
-        priority={priority}
+        priority={String(priority) as "0" | "1" | "2"}
         deadline={deadline}
       />
     </>
