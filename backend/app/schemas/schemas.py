@@ -13,3 +13,12 @@ class Todo(Base):
     priority = Column(Integer)
     completed = Column(Boolean)
     deadline = Column(Date)
+
+
+class User(Base):
+    __tablename__="users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String)
+    email = Column(String, unique=True)
+    password = Column(String)

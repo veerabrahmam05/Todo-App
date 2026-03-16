@@ -12,9 +12,12 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
 from datetime import timedelta, datetime, timezone
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
-from app.config.database import create_tables
+from app.config.database import create_tables, get_db
 from app.routes import todo
+from app.schemas.schemas import User as UserSchema
 
 load_dotenv()
 
@@ -49,16 +52,6 @@ async def response_validation_exception_handler(req: Request, e: ResponseValidat
         }
     )
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$argon2id$v=19$m=65536,t=3,p=4$wagCPXjifgvUFBzq4hqe3w$CYaIb8sB+wtD+Vu/P4uod1+Qof8h+1g7bbDlBID48Rc",
-        "disabled": False,
-    }
-}
-
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRES_IN_MINUTES = 30
@@ -76,30 +69,27 @@ class TokenData(BaseModel):
 class User(BaseModel):
     username: str
     email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
 
 class UserInDB(User):
-    hashed_password: str
+    password: str
 
-def verify_password(plain_password, hashed_password):
-    return password_hash.verify(plain_password, hashed_password)
+def verify_password(plain_password, password):
+    return password_hash.verify(plain_password, password)
 
 def hash_password(password: str):
     return password_hash.hash(password)
 
-def get_user(db, username):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-    return None
+def get_user(session: Session, username: str):
+    query = select(UserSchema).where(UserSchema.username == username)
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+    return session.execute(query).scalar_one_or_none()
+
+def authenticate_user(session: Session, username: str, password: str):
+    user = get_user(session, username)
     if not user:
         verify_password(password, DUMMY_HASH_PASSWORD)
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
@@ -113,7 +103,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_db)):
     credentials_error = HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Could not validate Credentials",
@@ -127,23 +117,15 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_error
-    user = get_user(fake_users_db, username=token_data.username)
+    user = get_user(session, username=token_data.username)
     if user is None:
         raise credentials_error
     return user
-
-def get_current_active_user(current_user: Annotated[User, Depends(get_current_user)]):
-    if current_user.disabled:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
-        )
-    return current_user
     
 
 @app.post("/token", response_model=Token)
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Session = Depends(get_db)):
+    user = authenticate_user(session, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -156,5 +138,15 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     return Token(access_token=access_token, token_type="Bearer")
 
 @app.get("/user/me", response_model=User)
-async def user(current_user: Annotated[User, Depends(get_current_active_user)]):
+async def user(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
+
+@app.post("/user/sign-up")
+async def sign_up(username: str, email: str, password: str, session = Depends(get_db)):
+    hashed_password = hash_password(password)
+    new_user = UserSchema(username=username, email=email,  password=hashed_password)
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+
+    return new_user
