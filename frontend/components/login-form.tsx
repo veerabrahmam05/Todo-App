@@ -20,11 +20,16 @@ import { useMutation } from "@tanstack/react-query";
 import { UserLoginSchema, UserLoginSchemaValues } from "@/schemas/userSchema";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useAuthHeader } from "@/contexts/auth-provider";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [viewPassword, setViewPassword] = useState(false);
+  const { authHeader, setAuthHeader } = useAuthHeader();
   const authenticateUser = useMutation({
     mutationFn: async (data: UserLoginSchemaValues) => {
       const res = await fetch("http://localhost:8000/token", {
@@ -46,6 +51,11 @@ export function LoginForm({
     },
     onSuccess: (data) => {
       console.log("data: ", data);
+      setAuthHeader({
+        accessToken: data,
+        tokenType: data,
+      });
+      console.log("auth header: ", authHeader);
     },
   });
 
@@ -100,12 +110,24 @@ export function LoginForm({
                     <FieldLabel htmlFor="form-login-password">
                       Password
                     </FieldLabel>
-                    <Input
-                      {...field}
-                      type="text"
-                      id="form-login-password"
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        type={viewPassword ? "text" : "password"}
+                        id="form-login-password"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="absolute right-1.5 top-0.5"
+                        type="button"
+                        onClick={() => setViewPassword((prev) => !prev)}
+                      >
+                        {viewPassword ? <Eye /> : <EyeOff />}
+                      </Button>
+                    </div>
+
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}

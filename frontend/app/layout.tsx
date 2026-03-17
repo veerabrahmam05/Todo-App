@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactQueryClientProvider } from "@/hooks/react-query-client-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
+import { Providers } from "@/components/provider";
 
 const funnelDisplay = Funnel_Display({
   subsets: ["latin"],
@@ -28,9 +29,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ReactQueryClientProvider>
+          <Providers>
             <TooltipProvider>{children}</TooltipProvider>
-          </ReactQueryClientProvider>
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
