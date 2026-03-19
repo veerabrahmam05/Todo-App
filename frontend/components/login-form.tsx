@@ -17,12 +17,17 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useMutation } from "@tanstack/react-query";
-import { UserLoginSchema, UserLoginSchemaValues } from "@/schemas/userSchema";
+import { UserLoginSchema, UserLoginSchemaValues } from "@/schemas/user.schema";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuthHeader } from "@/contexts/auth-provider";
+
+type AuthResBody = {
+  access_token: string;
+  token_type: string;
+};
 
 export function LoginForm({
   className,
@@ -49,13 +54,12 @@ export function LoginForm({
       const authResData = await res.json();
       return authResData;
     },
-    onSuccess: (data) => {
-      console.log("data: ", data);
+    onSuccess: (data: AuthResBody) => {
       setAuthHeader({
-        accessToken: data,
-        tokenType: data,
+        accessToken: data.access_token,
+        tokenType: data.token_type,
       });
-      console.log("auth header: ", authHeader);
+      localStorage.setItem("authToken: ", data.access_token);
     },
   });
 
