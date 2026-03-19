@@ -142,9 +142,9 @@ async def user(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
 
 @app.post("/user/sign-up")
-async def sign_up(username: str, email: str, password: str, session = Depends(get_db)):
-    hashed_password = hash_password(password)
-    new_user = UserSchema(username=username, email=email,  password=hashed_password)
+async def sign_up(userData: UserInDB, session = Depends(get_db)):
+    hashed_password = hash_password(userData.password)
+    new_user = UserSchema(username=userData.username, email=userData.email,  password=hashed_password)
     session.add(new_user)
     session.commit()
     session.refresh(new_user)

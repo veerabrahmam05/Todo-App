@@ -29,12 +29,17 @@ type AuthResBody = {
   token_type: string;
 };
 
+interface LoginFormProps {
+  setNewUser: (val: boolean) => void;
+}
+
 export function LoginForm({
+  setNewUser,
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps & React.ComponentProps<"div">) {
   const [viewPassword, setViewPassword] = useState(false);
-  const { authHeader, setAuthHeader } = useAuthHeader();
+  const { setAuthHeader } = useAuthHeader();
   const authenticateUser = useMutation({
     mutationFn: async (data: UserLoginSchemaValues) => {
       const res = await fetch("http://localhost:8000/token", {
@@ -141,7 +146,7 @@ export function LoginForm({
               <Field>
                 <Button type="submit">Login</Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don&apos;t have an account? <span className="hover:text-foreground" onClick={() => setNewUser(true)}>Sign up</span>
                 </FieldDescription>
               </Field>
             </FieldGroup>
