@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.config.database import get_db
 from app.schemas.schemas import Todo
-from app.schemas.models import TodoResponse, TodoModel, UpdateTodo, Priority
+from app.schemas.models import TodoResponse, TodoModel, UpdateTodo, Priority, User
 from sqlalchemy.orm import Session
 from sqlalchemy import select, asc, desc
 from typing import Literal
+from app.routes.auth import get_current_user
 
 
 router = APIRouter(
@@ -16,12 +17,13 @@ router = APIRouter(
 def get(
     completed: bool | None = None,
     sort: Literal["high_to_low", "low_to_high"] | None = None,
+    user: User = Depends(get_current_user),
     session: Session = Depends(get_db)
     ):
     """
         Gets all the todos stored in the db
     """
-    query = select(Todo)
+    query = select(Todo).where(Todo.user_id == user.id)
 
     if completed is not None:
         query = query.where(Todo.completed == completed)
@@ -37,10 +39,12 @@ def get(
     return todos
 
 @router.post("/create_todo")
-def create_todo(todo: TodoModel, session: Session =  Depends(get_db)):
+def create_todo(todo: TodoModel, user: User = Depends(get_current_user), session: Session =  Depends(get_db)):
     """
         creates a todo with given data through method's body
     """
+    user_todo = todo.model_dump()
+    user_todo.update({"user_id": user.id})
     new_todo = Todo(**todo.model_dump())
     session.add(new_todo)
     session.commit()
@@ -49,7 +53,7 @@ def create_todo(todo: TodoModel, session: Session =  Depends(get_db)):
     return new_todo
 
 @router.put("/update/{todo_id}")
-def update_todo(todo_id: int, todo: UpdateTodo, session: Session = Depends(get_db)):
+def update_todo(todo_id: int, todo: UpdateTodo, user: User = Depends(get_current_user), session: Session = Depends(get_db)):
     """
         update's the mentioned todo by id with the provided info in the method's body
     """
@@ -67,7 +71,7 @@ def update_todo(todo_id: int, todo: UpdateTodo, session: Session = Depends(get_d
     return db_todo
 
 @router.delete("/delete/{todo_id}")
-def delete_todo(todo_id: int, session: Session = Depends(get_db)):
+def delete_todo(todo_id: int, user: User = Depends(get_current_user), session: Session = Depends(get_db)):
     """
         delete's the todo mentioned by id
     """

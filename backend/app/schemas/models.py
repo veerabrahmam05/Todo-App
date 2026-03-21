@@ -2,6 +2,21 @@ from pydantic import BaseModel
 from enum import Enum
 from datetime import date
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+class User(BaseModel):
+    id: int | None = None
+    username: str
+    email: str | None = None
+
+class UserInDB(User):
+    password: str
+
 class Priority(int, Enum):
     high = 2
     medium = 1
