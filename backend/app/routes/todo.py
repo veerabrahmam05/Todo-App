@@ -45,7 +45,7 @@ def create_todo(todo: TodoModel, user: User = Depends(get_current_user), session
     """
     user_todo = todo.model_dump()
     user_todo.update({"user_id": user.id})
-    new_todo = Todo(**todo.model_dump())
+    new_todo = Todo(**user_todo)
     session.add(new_todo)
     session.commit()
     session.refresh(new_todo)
@@ -57,7 +57,10 @@ def update_todo(todo_id: int, todo: UpdateTodo, user: User = Depends(get_current
     """
         update's the mentioned todo by id with the provided info in the method's body
     """
-    db_todo = session.get(Todo, todo_id)
+    db_todo = session.query(Todo).filter(
+        Todo.id == todo_id,
+        Todo.user_id == user.id
+    )
 
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
@@ -75,7 +78,10 @@ def delete_todo(todo_id: int, user: User = Depends(get_current_user), session: S
     """
         delete's the todo mentioned by id
     """
-    db_todo = session.get(Todo, todo_id)
+    db_todo = session.query(Todo).filter(
+        Todo.id == todo_id,
+        Todo.user_id == user.id
+    )
 
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
