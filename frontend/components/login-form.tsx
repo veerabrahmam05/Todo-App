@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuthHeader } from "@/contexts/auth-provider";
+import { useRouter } from "next/navigation";
 
 type AuthResBody = {
   access_token: string;
@@ -40,6 +41,7 @@ export function LoginForm({
 }: LoginFormProps & React.ComponentProps<"div">) {
   const [viewPassword, setViewPassword] = useState(false);
   const { setAuthHeader } = useAuthHeader();
+  const router = useRouter();
   const authenticateUser = useMutation({
     mutationFn: async (data: UserLoginSchemaValues) => {
       const res = await fetch("http://localhost:8000/token", {
@@ -64,7 +66,15 @@ export function LoginForm({
         accessToken: data.access_token,
         tokenType: data.token_type,
       });
-      localStorage.setItem("authToken: ", data.access_token);
+      let date = new Date();
+      date.setMinutes(date.getMinutes() + 30);
+      document.cookie =
+        "authToken" +
+        "=" +
+        data.access_token +
+        date.toUTCString() +
+        "; path = /";
+      router.push("/dashboard");
     },
   });
 
@@ -146,7 +156,13 @@ export function LoginForm({
               <Field>
                 <Button type="submit">Login</Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <span className="hover:text-foreground" onClick={() => setNewUser(true)}>Sign up</span>
+                  Don&apos;t have an account?{" "}
+                  <span
+                    className="hover:text-foreground"
+                    onClick={() => setNewUser(true)}
+                  >
+                    Sign up
+                  </span>
                 </FieldDescription>
               </Field>
             </FieldGroup>

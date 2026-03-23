@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { TodoCard } from "./todo-card";
 import { ScrollArea } from "./ui/scroll-area";
+import { useAuthHeader } from "@/contexts/auth-provider";
 
 interface TodoData {
   id: string;
@@ -18,6 +19,14 @@ interface TodoLayoutProps {
 }
 
 export const TodoLayout = ({ filter, sort }: TodoLayoutProps) => {
+  const { authHeader } = useAuthHeader();
+  const getCookie = (name: string) => {
+    const cookie = `; ${document.cookie}`;
+    const parts = cookie.split(`${name}=`);
+    console.log("parts: ", parts);
+    if (parts.length === 2) return parts.pop()?.split(";").shift();
+    return null;
+  };
   const { data, isLoading, isRefetching, isError } = useQuery<TodoData[]>({
     queryKey: ["todos", filter, sort],
     queryFn: () => {
@@ -31,9 +40,11 @@ export const TodoLayout = ({ filter, sort }: TodoLayoutProps) => {
         params.append("sort", sort);
       }
 
-      return fetch(`http://localhost:8000/todo/get?${params.toString()}`).then(
-        (res) => res.json(),
-      );
+      return fetch(`http://localhost:8000/todo/get?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${getCookie("authToken")}`,
+        },
+      }).then((res) => res.json());
     },
   });
 
@@ -65,7 +76,7 @@ export const TodoLayout = ({ filter, sort }: TodoLayoutProps) => {
   return (
     <ScrollArea className="h-full">
       <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 m-1">
-        {data?.map((todo) => (
+        {/* {data?.map((todo) => (
           <TodoCard
             key={todo.id}
             id={todo.id}
@@ -75,7 +86,7 @@ export const TodoLayout = ({ filter, sort }: TodoLayoutProps) => {
             completed={todo.completed}
             deadline={todo.deadline}
           />
-        ))}
+        ))} */}
       </div>
     </ScrollArea>
   );

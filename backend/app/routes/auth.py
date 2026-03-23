@@ -91,9 +91,12 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
 
     return Token(access_token=access_token, token_type="Bearer")
 
-@router.get("/user/me", response_model=User)
+@router.get("/user/me")
 async def user(current_user: Annotated[User, Depends(get_current_user)]):
-    return current_user
+    if current_user:
+        return True
+    else:
+        return False
 
 @router.post("/user/sign-up")
 async def sign_up(userData: UserInDB, session = Depends(get_db)):
