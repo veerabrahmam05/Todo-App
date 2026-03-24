@@ -21,6 +21,7 @@ import {
 import { Button } from "./ui/button";
 import { TodoDialog } from "./todo-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { getCookie } from "@/lib/utils";
 
 interface TodoCardProps {
   id: string;
@@ -47,12 +48,14 @@ export const TodoCard = ({
 }: TodoCardProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const token = getCookie("authToken");
   const deleteTodo = useMutation({
     mutationFn: () =>
       fetch(`http://localhost:8000/todo/delete/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       }),
     onSuccess: () => {
@@ -61,7 +64,7 @@ export const TodoCard = ({
   });
 
   const getPriorityLabel = (value: number) => {
-    switch(value) {
+    switch (value) {
       case 0:
         return "low";
       case 1:
@@ -69,9 +72,9 @@ export const TodoCard = ({
       case 2:
         return "high";
       default:
-        return "none"
+        return "none";
     }
-  }
+  };
 
   const dropDownItems: DropDownItemsType[] = [
     {

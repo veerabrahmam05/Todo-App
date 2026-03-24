@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "@/lib/utils";
+import { cn, getCookie } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -72,6 +72,7 @@ export function LoginForm({
         "authToken" +
         "=" +
         data.access_token +
+        "; expires = " +
         date.toUTCString() +
         "; path = /";
       router.push("/dashboard");

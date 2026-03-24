@@ -8,6 +8,7 @@ import { DatePicker } from "./date-picker";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { Priority } from "@/app/types";
+import { getCookie } from "@/lib/utils";
 
 interface TodoFormProps extends Partial<TodoSchemaValues> {
   id?: string;
@@ -23,6 +24,7 @@ export const TodoForm = ({
   setOpen,
 }: TodoFormProps) => {
   const queryClient = useQueryClient();
+  const token = getCookie("authToken");
   const { control, handleSubmit } = useForm<TodoSchemaValues>({
     resolver: zodResolver(TodoSchema),
     defaultValues: {
@@ -40,6 +42,7 @@ export const TodoForm = ({
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...data,
@@ -64,6 +67,7 @@ export const TodoForm = ({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...data,

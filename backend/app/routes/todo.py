@@ -60,7 +60,7 @@ def update_todo(todo_id: int, todo: UpdateTodo, user: User = Depends(get_current
     db_todo = session.query(Todo).filter(
         Todo.id == todo_id,
         Todo.user_id == user.id
-    )
+    ).one_or_none()
 
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
@@ -81,7 +81,7 @@ def delete_todo(todo_id: int, user: User = Depends(get_current_user), session: S
     db_todo = session.query(Todo).filter(
         Todo.id == todo_id,
         Todo.user_id == user.id
-    )
+    ).one_or_none()
 
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
